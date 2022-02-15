@@ -1,0 +1,140 @@
+<template>
+	<view class="skeleton" ref='skeleton' :style="{height:h + 'px'}" v-if="hide">
+		<view class="lists" v-for="item in 8">
+			<view class="lists-image"></view>
+			<view class="lists-title-box">
+				<view class="lists-title"></view>
+				<view class="lists-title2"></view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	const Binding = uni.requireNativePlugin('bindingx');
+	export default {
+		watch:{
+			getHide(val){
+				if(val){
+					this.onOpacityOff();
+				}
+			},
+		},
+		data(){
+			return{
+				hide:true,
+				h:0
+			}
+		},
+		props:{
+			getHide:{
+				//控制是否出现
+				default:false
+			},
+		},
+		created() {
+			this.h = app.osHeight;
+		},
+		methods:{
+			onSkeleton(){
+				this.hide = false;
+				this.$emit('onSkeleton')
+			},
+			onOpacityOn(){
+				//渐变动画
+				const el = this.$refs.skeleton.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[
+						{
+							element: el,
+							property: 'opacity',
+							expression: 'linear(t,0,+1,300)'
+						},
+						{
+							element: el,
+							property: 'transform.translateY',
+							expression: 'linear(t,-50,+50,300)'
+						},
+					]
+				},(res)=>{
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    })
+					}
+				});
+			},
+			onOpacityOff(){
+				//关闭显影
+				
+				const el = this.$refs.skeleton.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[
+						{
+							element: el,
+							property: 'opacity',
+							expression: 'linear(t,1,-1,300)'
+						},
+						{
+							element: el,
+							property: 'transform.translateY',
+							expression: 'linear(t,0,-50,300)'
+						},
+					]
+				},(res)=>{
+					console.log(res);
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    });
+						this.onSkeleton();
+					}
+				});
+			},
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.skeleton{
+		width: 750rpx;
+		background-color: $setoff;
+		align-items: center;
+		@include ab();
+		left: 0;
+		top: 0;
+	}
+	.lists{
+		@include size(710rpx,140rpx,$theme);
+		border-radius: 15rpx;
+		flex-direction: row;
+		align-items: center;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+		margin-top: 20rpx;
+	}
+	.lists-title-box{
+		flex: 1;
+		height: 140rpx;
+		justify-content: center;
+		padding-left: 20rpx;
+	}
+	.lists-image{
+		@include size(100rpx,100rpx,$setoff);
+		border-radius: 15rpx;;
+	}
+	.lists-title{
+		@include size(520rpx,40rpx,$setoff);
+		border-radius: 10rpx;
+	}
+	.lists-title2{
+		@include size(400rpx,40rpx,$setoff);
+		border-radius: 10rpx;
+		margin-top: 15rpx;
+	}
+</style>

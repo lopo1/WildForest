@@ -1,0 +1,152 @@
+<template>
+	<cover-view class="goodsType-popup"  :style="{height:windowHeight + 'px'}" v-if="show">
+		<view class="goodsType" scroll-y="true" :class="{goodsTypeActive:open}">
+			<view class="mybtn" @tap='onAgree'>
+				<text class="mybtn-txt" style="color: #1890FF;">查看更多用户</text>
+			</view>
+			<view class="mybtn" @tap='onRefused' style="margin-top: 10rpx;">
+				<text class="mybtn-txt" style="color: #F41C1C;">查看更多公会</text>
+			</view>
+			<view class="mybtn" style="margin-top: 10rpx;" @tap="onClose">
+				<text class="mybtn-txt" style="color: #666666;">取消</text>
+			</view>
+		</view>
+	</cover-view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	export default {
+		watch:{
+			getShow(val){
+				const _this = this;
+				if(val){
+					this.show = val;
+					this.$nextTick(()=>{
+						this.getSystemHeight();
+						setTimeout(()=>{
+							_this.open = val;
+						},300)
+					});
+				}else{
+					this.$nextTick(()=>{
+						this.open = val;
+						setTimeout(()=>{
+							_this.show = val;
+						},300);
+					})
+				}
+			},
+		},
+		data(){
+			return{
+				open:false,
+				show:false,
+				windowHeight:0
+			}
+		},
+		props:{
+			getShow:{
+				//用于接收
+				default:false
+			},
+			type:{
+				default:1
+			},
+			oms:{
+				default:[]
+			}
+		},
+		methods:{
+			onAgree(){
+				//同意
+				this.$emit('onAgree');
+				// this.onClose();
+			},
+			onRefused(){
+				//拒绝
+				this.$emit('onRefused');
+				// this.onClose();
+			},
+			onClose(){
+				this.$emit('onClose')
+			},
+			onCheck(index){
+				this.$emit('onCheck',index)
+			},
+			getSystemHeight(){
+				//获取系统可用高度
+				this.windowHeight = app.osHeight;
+			
+			},
+		
+			onScrollBottom(){
+				this.$emit('onScrollBottom')
+			}
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.mybtn{
+		width: 750rpx;
+		height: 90rpx;
+		background-color: white;
+		@include cen()
+	}
+	.mybtn-txt{
+		@include font($e,#333);
+		@include bold();
+	}
+	.goodsType-popup{
+		@include ab();
+		width: 750rpx;
+		border-radius: 8rpx;
+		align-items: center;
+	}
+	.goodsType{
+		width: 750rpx;
+		height: 300rpx;
+		transition-property:transform;
+		transition-duration:.2s;
+		transform: translateY(300rpx);
+		align-items: center;
+		border-radius: 10rpx;
+		@include ab();
+		bottom: 0;
+		background-color:#F4F4F4;
+	}
+	.goodsType-box{
+		width: 710rpx;
+		flex: 1;
+	}
+	.goodsTypeActive{
+		transform: translateY(0rpx);
+	}
+	.fixs{
+		@include size(710rpx,100rpx,none);
+		border-bottom-color: #aaa;
+		border-bottom-width: 1rpx;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+	}
+	.fix-txt1{
+		@include font($l,#333);
+		@include bold()
+	}
+	.fix-txt2{
+		@include font($l,#333);
+		@include bold()
+	}
+	.btns{
+		width: 710rpx;
+	}
+	.btn{
+		@include size(620rpx,80rpx,#1890FF);
+		border-radius: 10rpx;
+		margin-top: 25rpx;
+	}
+</style>

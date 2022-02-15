@@ -1,0 +1,21 @@
+<template>
+	<image class="content-bg" :style="{height:h+'px'}" src="~@/static/bg.png" mode="widthFix"></image>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	export default {
+		data(){
+			return{
+				h:''
+			}
+		},
+		created(){
+			this.h = app.osHeight;
+		},
+	}
+</script>
+
+<style lang="scss" scoped>
+	
+</style>

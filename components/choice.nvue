@@ -1,0 +1,138 @@
+<template>
+	<scroll-view scroll-y="true" class="type-choice" :style="{marginTop: h + 'px',height:showHeight? height+'rpx':'0rpx'}" v-if="show">
+		<view class="type-choice-top">
+			<text class="type-title">全部分类</text>
+			<view class="down" @tap="onClose">
+				<image class="down-txt" src="~@/static/up.png"></image>
+			</view>
+		</view>
+		<view class="taps-box">
+			<view class="tap" :class="{tapActive:tapNum == index}" v-for="(item,index) in taps" @tap="onTap(index)">
+				<text class="tap-txt" :class="{tapTextActive:tapNum == index}">{{item.class_name}}</text>
+			</view>
+			
+		</view>
+	</scroll-view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	export default {
+		data(){
+			return{
+				tapNum:0,
+				show:false,//控制动画
+				showHeight:false,
+				height:250
+			}
+		},
+		methods:{
+			onClose(){
+				this.$emit('onClose')
+			},
+			onTap(index){
+				this.tapNum = index;
+				this.$emit('onTap',index)
+			},
+		},
+		watch:{
+			
+			open(val){
+				console.log(val)
+				const _this = this;
+				if(val){
+					this.show = val;
+					this.height = 250;
+					setTimeout(()=>{
+						this.showHeight = val;
+					},300)
+				}else{
+					this.height = 0;
+					setTimeout(()=>{
+						this.show = false;
+						this.showHeight = false;
+					},300)
+				}
+			}
+		},
+		props:{
+			open:{
+				//控制是否出现
+				default:false
+			},
+			taps:{
+				default:[]
+			}
+		},
+		created(){
+			this.h = app.osStateH;
+		},
+	}
+</script>
+
+<style scoped lang="scss">
+	.type-choice{
+		width: 750rpx;
+		height: 0rpx;
+		background-color: #fff;
+		@include ab();
+		top: 88rpx;
+		transition-property:height;
+		transition-duration:.5s;
+		padding-bottom: 20rpx;
+	}
+	.toHeight{
+		height: 400rpx;
+	}
+	.type-choice-top{
+		@include size(750rpx,70rpx,none);
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+	}
+	.type-title{
+		@include font($l,#333)
+	}
+	.down{
+		@include size(38rpx,38rpx,#fff);
+		border-radius: 50%;
+		@include border(3rpx,solid,#999);
+		@include cen();
+		@include ab();
+		right: 20rpx;
+		margin-top: 20rpx;
+	}
+	.down-txt{
+		@include size(28rpx,28rpx,none);
+		font-weight: bold;
+	}
+	.taps-box{
+		width: 750rpx;
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+	.tap{
+		@include size(130rpx,50rpx,none);
+		@include border(1rpx,solid,#999);
+		@include cen();
+		margin-left: 30rpx;
+		margin-top: 20rpx;
+		transition-property:background-color;
+		transition-duration:.5s;
+		border-radius: 10rpx;
+	}
+	.tap-txt{
+		transition-property:color;
+		transition-duration:.5s;
+		@include font($l,#999999);
+	}
+	.tapActive{
+		background-color: #0085ED;
+		@include border(1rpx,solid,#0085ED);
+	}
+	.tapTextActive{
+		color: #FFFFFF;
+	}
+</style>

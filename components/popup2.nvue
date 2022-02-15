@@ -1,0 +1,109 @@
+<template>
+	<!--弹出层-->
+	<view @tap="onClose" ref='popup' class="popup" :style="{height:8000 + 'px'}" v-if="show"></view>
+</template>
+
+<script>
+	// const Binding = uni.requireNativePlugin('bindingx');
+	export default {
+		watch:{
+			open(val){
+				const _this = this;
+				if(val){
+					this.show = val;
+					this.$nextTick(()=>{
+						this.onOpacityOn();
+					});
+				}else{
+					this.$nextTick(()=>{
+						this.onOpacityOff();
+						setTimeout(()=>{
+							_this.show = val;
+						},300);
+					})
+				}
+			}
+		},
+		onShow(){
+			this.getSystemHeight();
+		},
+		data(){
+			return{
+				show:false,//控制动画
+				windowHeight:0,//设备可使用高度
+			}
+		},
+		props:{
+			open:{
+				//控制是否出现
+				default:false
+			},
+		},
+		mounted(){
+			this.getSystemHeight();
+		},
+		methods:{
+			onClose(){
+				this.$emit('onClose')
+			},
+			onOpacityOn(){
+				//渐变动画
+				const el = this.$refs.popup.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[{
+						element: el,
+						property: 'opacity',
+						expression: 'linear(t,0,+1,300)'
+					}]
+				},(res)=>{
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    })
+					}
+				})
+			},
+			onOpacityOff(){
+				//关闭显影
+				const el = this.$refs.popup.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[{
+						element: el,
+						property: 'opacity',
+						expression: 'linear(t,1,-1,300)'
+					}]
+				},(res)=>{
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    })
+					}
+				})
+			},
+			getSystemHeight(){
+				//获取系统可用高度
+				uni.getSystemInfo({
+					success:(res)=>{
+						this.windowHeight = res.windowHeight;
+					}
+				})
+			},
+		}
+	}
+</script>
+
+<style lang="scss" scoped>
+	//弹出层
+	.popup{
+		width: 750rpx;
+		@include ab();
+		background-color: rgba(0,0,0,.4);
+		opacity: 0;
+		@include cen();
+		z-index:999999
+	}
+</style>

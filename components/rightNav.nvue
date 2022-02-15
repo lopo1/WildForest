@@ -1,0 +1,118 @@
+<template>
+	<view class="rightNav" :style="{height:windowHeight + 'px'}" v-if="show">
+		<view class="goodsType" scroll-y="true" :style="{top:top+'px'}" :class="{goodsTypeActive:open}">
+			<view class="list" @tap="onNav(0)">
+				<text class="list-txt">创建公会</text>
+			</view>
+			<view class="list" @tap="onNav(1)">
+				<text class="list-txt">创建私密会话</text>
+			</view>
+			<view class="list" @tap="onNav(2)">
+				<text class="list-txt">添加好友</text>
+			</view>
+	<!-- 		<view class="list" @tap="onNav(3)">
+				<text class="list-txt">创建频道</text>
+			</view>
+			<view class="list" @tap="onNav(4)">
+				<text class="list-txt">扫一扫</text>
+			</view> -->
+		</view>
+	</view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	export default {
+		watch:{
+			getShow(val){
+				const _this = this;
+				if(val){
+					this.show = val;
+					this.$nextTick(()=>{
+						this.getSystemHeight();
+						setTimeout(()=>{
+							_this.open = val;
+						},300)
+					});
+				}else{
+					this.$nextTick(()=>{
+						this.open = val;
+						setTimeout(()=>{
+							_this.show = val;
+						},300);
+					})
+				}
+			},
+		},
+		created() {
+			this.top = app.osStateH
+		},
+		data(){
+			return{
+				open:false,
+				show:false,
+				windowHeight:0,
+				top:0,
+			}
+		},
+		props:{
+			getShow:{
+				//用于接收
+				default:false
+			},
+			oms:{
+				default:[]
+			}
+		},
+	
+		methods:{
+			onNav(index){
+				this.$emit('onNav',index);
+				if(index==0){
+					app.$next('society/createdSociety/createdSociety');
+				}
+			},
+			onClose(){
+				this.$emit('onClose');
+			},
+
+			getSystemHeight(){
+				//获取系统可用高度
+				this.windowHeight = app.osHeight;
+			},
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.list{
+		@include size(320rpx,100rpx,none);
+		@include cen()
+	}
+	.list-txt{
+		@include font($e,#333);
+		@include bold();
+	}
+	.rightNav{
+		@include ab();
+		width: 750rpx;
+		border-radius: 8rpx;
+		align-items: center;
+	}
+	.goodsType{
+		width: 320rpx;
+		height: 300rpx;
+		transition-property:transform;
+		transition-duration:.2s;
+		transform: scale(0);
+		align-items: center;
+		border-radius: 15rpx;
+		@include ab();
+		right: 30rpx;
+		background-color:#FFF;
+		margin-top: 88rpx;
+	}
+	.goodsTypeActive{
+		transform: scale(1);
+	}
+</style>

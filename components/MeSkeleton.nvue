@@ -1,0 +1,209 @@
+<template>
+	<view class="skeleton" ref='skeleton' :style="{height:h + 'px'}" v-if="hide">
+		<view class="user" @tap="onOpacityOff">
+			<view class="userinfo">
+				<view class="userinfo-title"></view>
+				<view class="userinfo-text"></view>
+			</view>
+		</view>
+		<view class="orders" @tap="onOpacityOn">
+			<view class="order-top">
+				<view class="order-top-title"></view>
+				<view class="order-top-title2"></view>
+			</view>
+			<view class="order-mid">
+				<view class="order-mid-list"></view>
+				<view class="order-mid-list"></view>
+				<view class="order-mid-list"></view>
+				<view class="order-mid-list"></view>
+				<view class="order-mid-list"></view>
+			</view>
+		</view>
+		<view class="lists">
+			<view class="list" v-for="item in 5">
+				<view class="list-icon"></view>
+				<view class="list-title"></view>
+				<view class="list-more"></view>
+			</view>
+		</view>
+		
+	</view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	const Binding = uni.requireNativePlugin('bindingx');
+	export default {
+		data(){
+			return{
+				hide:true,
+				h:0
+			}
+		},
+		created() {
+			this.h = app.osHeight;
+		},
+		methods:{
+			onSkeleton(){
+				this.hide = false;
+				this.$emit('onSkeleton')
+			},
+			onOpacityOn(){
+				//渐变动画
+				const el = this.$refs.skeleton.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[
+						{
+							element: el,
+							property: 'opacity',
+							expression: 'linear(t,0,+1,300)'
+						},
+						{
+							element: el,
+							property: 'transform.translateY',
+							expression: 'linear(t,-50,+50,300)'
+						},
+					]
+				},(res)=>{
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    })
+					}
+				});
+			},
+			onOpacityOff(){
+				//关闭显影
+				
+				const el = this.$refs.skeleton.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[
+						{
+							element: el,
+							property: 'opacity',
+							expression: 'linear(t,1,-1,300)'
+						},
+						{
+							element: el,
+							property: 'transform.translateY',
+							expression: 'linear(t,0,-50,300)'
+						},
+					]
+				},(res)=>{
+					console.log(res);
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    });
+						this.onSkeleton();
+					}
+				});
+			},
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.skeleton{
+		width: 750rpx;
+		background-color: $setoff;
+		align-items: center;
+		@include ab();
+		left: 0;
+		top: 0;
+	}
+	.user{
+		@include size(710rpx,280rpx,$theme);
+		border-radius: 15rpx;
+		margin-top: 20rpx;
+	}
+	.userinfo{
+		@include size(710rpx,120rpx,none);
+		flex-direction: row;
+		align-items: center;
+		padding-left: 20rpx;
+	}
+	.userinfo-title{
+		@include size(50rpx,50rpx,$setoff);
+		border-radius: 50%;
+	}
+	.userinfo-text{
+		@include size(520rpx,50rpx,$setoff);
+		border-radius: 10rpx;
+		margin-left: 20rpx;
+	}
+	.orders{
+		@include size(710rpx,220rpx,$theme);
+		border-radius: 15rpx;
+		margin-top: 20rpx;
+		align-items: center;
+		padding-top: 20rpx;
+	}
+	.order-top{
+		@include size(670rpx,80rpx,$setoff);
+		border-radius: 15rpx;
+		align-items: center;
+		flex-direction: row;
+		justify-content: space-between;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+	}
+	.order-top-title{
+		@include size(100rpx,40rpx,$theme);
+		border-radius: 15rpx;
+	}
+	.order-top-title2{
+		@include size(170rpx,40rpx,$theme);
+		border-radius: 15rpx;
+	}
+	.order-mid{
+		@include size(670rpx,80rpx,$setoff);
+		border-radius: 15rpx;
+		align-items: center;
+		flex-direction: row;
+		justify-content: center;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+		margin-top: 20rpx;
+	}
+	.order-mid-list{
+		@include size(20rpx,20rpx,$theme);
+		border-radius: 50%;
+		margin-left: 10rpx;
+	}
+	.lists{
+		width: 710rpx;
+		align-items: center;
+		border-radius: 15rpx;
+		margin-top: 20rpx;
+		background-color: $theme;
+		padding-bottom: 20rpx;
+	}
+	.list{
+		@include size(670rpx,120rpx,$setoff);
+		border-radius: 15rpx;
+		margin-top: 20rpx;
+		flex-direction: row;
+		align-items: center;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+	}
+	.list-icon{
+		@include size(50rpx,50rpx,$theme);
+		border-radius: 15rpx;
+	}
+	.list-title{
+		@include size(450rpx,50rpx,$theme);
+		margin-left: 10rpx;
+		border-radius: 10rpx;
+	}
+	.list-more{
+		@include size(40rpx,40rpx,$theme);
+		border-radius: 50%;
+		margin-left: 80rpx;
+	}
+</style>

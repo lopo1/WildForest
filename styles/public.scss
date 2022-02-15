@@ -1,0 +1,97 @@
+$el:36rpx;//主标题文字
+$e:30rpx;//主标题文字
+$l:28rpx;//副标题文字
+$m:28rpx;//正文文字
+$s:26rpx;//辅助文字
+$theme:#EBF1F8;//主题色
+$setoff:white;//衬托色
+@mixin size($w,$h,$b) {
+	@if $w == auto{
+		height:$h;
+		background-color:$b;
+	}@else if $b == none{
+		width:$w;
+		height:$h;
+	}@else{
+		width:$w;
+		height:$h;
+		background-color:$b;
+	}
+}
+@mixin font($size,$color) {
+	font-size: $size;
+	color: $color;
+}
+@mixin cen {
+	display: flex;
+	flex-direction: row;
+	justify-content: center;
+	align-items: center;
+}
+@mixin levelCen{
+	height: 100vh;
+	display: flex;
+	align-items: center;
+	flex-direction: column;
+}
+@mixin bg {
+	background-image: url('~@/static/bg.png');
+	background-size: 100% 100%;
+	background-repeat: no-repeat;
+}
+@mixin icon($url) {
+	background-image: url($url) ;
+	background-size:cover;
+	background-repeat: no-repeat;
+}
+@mixin re {
+	position: relative;
+}
+@mixin ab {
+	position: absolute;
+}
+@mixin ani($speed) {
+	transition-property:transform;
+	transition-duration:$speed;
+}
+@mixin parent {
+	@include re();
+	width: 750rpx;
+	flex: 1;
+	align-items: center;
+	border-radius:1rpx;
+	background-color: #F7F7F7
+}
+@mixin bgo {
+	background-color: rgba(16, 5, 18,.7);
+}
+@mixin tH {
+	white-space: nowrap;
+	text-overflow: ellipsis;
+	overflow: hidden;
+	word-break: break-all;
+}
+@mixin tH2 {
+	lines:2;
+	text-overflow:ellipsis;
+}
+@mixin tH3 {
+	lines:3;
+	text-overflow:ellipsis;
+}
+@mixin tH4 {
+	lines:4;
+	text-overflow:ellipsis;
+}
+@mixin tH5 {
+	lines:5;
+	text-overflow:ellipsis;
+}
+@mixin border($w,$s,$c) {
+	border-width: $w;
+	border-style: $s;
+	border-color: $c;
+}
+@mixin bold {
+	font-weight: bold;
+}

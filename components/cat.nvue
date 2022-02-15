@@ -1,0 +1,586 @@
+<template>
+	<view class="box">
+		<list ref='list' class="box" @loadmore='getPages'>
+		<!-- 	<refresh class="loading" @refresh="onRefresh" @pullingdown="onPullingdown" :display="refreshLock ? 'show' : 'hide'">
+				<text class="loading-val">{{myloading}}</text>
+			</refresh> -->
+			<cell class="cat-none" v-if="lists.length == 0">
+				<image class="cat-none-bg" src="~@/static/index/shop/none.png"></image>
+				<text class="cat-none-txt">{{la.shopCat1}}</text>
+				<view class="cat-none-btn" @tap='toIndex'>
+					<text class="cat-none-btn-txt">{{la.shopCat2}}</text>
+				</view>
+			</cell>
+			<cell class="cat-box" v-for="(item,index) in lists">
+				<view class="cat-shop">
+					<view class="cat-top" @tap='onShopChoice(index)'>
+						<view class="cat-choose">
+							<view class="choose-box"></view>
+							<image class="choose-icon" src="~@/static/index/shop/gou.png" v-if="item.choice"></image>
+						</view>
+						<text class="cat-top-txt">{{item.shop_name}}</text>
+					</view>
+					<view class="cat borderBottom" v-for="(citem,cindex) in item.data">
+						<view class="cat-choose" @tap='onChoice(index,cindex)'>
+							<view class="choose-box"></view>
+							<image class="choose-icon" src="~@/static/index/shop/gou.png" v-if="citem.choice"></image>
+						</view>
+						<view class="cat-bg" @tap='onChoice(index)'>
+							<image class="cat-bg-s" :src="citem.image"></image>
+						</view>
+						<view class="cat-msg">
+							<text class="goods-list-r-txt">{{citem.title}}</text>
+							<text class="goods-list-r-txt2">{{getTypeVal(citem.type_id)}}</text>
+							<view class="goods-list-moneys">
+								<view class="goods-list-moneys-l">
+									<text class="goods-list-moneys-l-txt">$</text>
+									<text class="goods-list-moneys-l-txt2">{{citem.price}}</text>
+								</view>
+								<view class="goods-list-moneys-r">
+									<view class="goods-list-moneys-r-box1" @tap='onReduce($event,index,cindex)'>
+										<text class="goods-list-moneys-r-txt">-</text>
+									</view>
+									<view class="goods-list-moneys-r-mid">
+										<text class="goods-list-moneys-r-txt">{{citem.num}}</text>
+									</view>
+									<view class="goods-list-moneys-r-box2" @tap='onAdd($event,index,cindex)'>
+										<text class="goods-list-moneys-r-txt">+</text>
+									</view>
+								</view>
+							</view>
+						</view>
+					</view>
+				</view>
+				
+			</cell>
+		</list>
+		<view class="cat-operation-box"  v-if="lists.length > 0">
+			<view class="cat-operation">
+				<view class="all">
+					<view class="all-l" @tap='onAll'>
+						<view class="all-l-choose-box"></view>
+						<image class="all-l-choose-icon" v-if="allOpen" src="~@/static/index/shop/gou.png"></image>
+						<text class="all-l-txt">{{la.shopCat3}}</text>
+					</view>
+					<view class="all-r">
+						<text class="all-r-txt1">{{la.shopCat4}}:</text>
+						<text class="all-r-txt2">￥</text>
+						<text class="all-r-txt3">{{total}}</text>
+					</view>
+				</view>
+				<view class="all-btns">
+					<view class="all-btn2" @tap='onDel'>
+						<text class="all-btn-txt" style="color: #FFFFFF;">{{la.shopCat5}}({{choiceNum}})</text>
+					</view>
+					<view class="all-btn" @tap='onBuy'>
+						<text class="all-btn-txt">{{la.shopCat6}}({{choiceNum}})</text>
+					</view>
+				</view>
+			</view>
+		</view>
+		
+	</view>
+	
+</template>
+
+<script>
+	const app = getApp().globalData;
+	import np from '@/common/np.js';
+	// app.shopPage = 2;
+	export default {
+		watch:{
+			catApiLock(val){
+				console.log(val);
+				if(val){
+					this.getData();
+				}
+			}
+		},
+		data(){
+			return{
+				allOpen:false,//是否全选
+				choiceNum:0,//选中数量
+				total:0,//总价格
+				lists:[],
+				open:false,
+				maxLen:0,
+				buys:[]
+			}
+		},
+		props:{
+			catApiLock:{
+				default:false
+			},
+			la:{
+				default:{}
+			}
+		},
+		mounted() {
+			app.shopRouterCatLock = true;
+			
+			this.getData();
+		},
+		methods:{
+			onOpen(){
+				this.$emit('onShopOpen',{open:true,buys:this.buys})
+			},
+			onDel(){
+				const len = this.lists.length;
+				console.log(this.lists)
+				const data = [];
+				for(let i = 0;i<len;i++){
+					const item = {};
+					item.shop_id = this.lists[i].shop_id;
+					item.keys = '';
+					const yLen = this.lists[i].data.length;
+					for(let y = 0;y<yLen;y++){
+						console.log(this.lists[i].data[y].id)
+						if(this.lists[i].data[y].choice){
+							item.keys += ','+this.lists[i].data[y].id;
+						}
+					}
+					item.keys = item.keys.substr(1);
+					data.push(item);
+				};
+				if(this.choiceNum<=0){
+					app.$tips(this.la.shopCat7)
+					return
+				}
+				this.$emit('onOpen',data);
+			},
+			onAll(){
+				this.allOpen = !this.allOpen;
+				const len = this.lists.length;
+				if(this.allOpen){
+					this.total = 0;
+					this.choiceNum = 0;
+					for(let i = 0;i<len;i++){
+						this.lists[i].choice = true;
+						const yLen = this.lists[i].data.length;
+						for(let y=0;y<yLen;y++){
+							this.lists[i].data[y].choice = true;
+							this.choiceNum++;
+							const goodsTotal = np.times(this.lists[i].data[y].num,this.lists[i].data[y].price);
+							this.total = np.plus(this.total,goodsTotal);
+						}
+					}
+				}else{
+					for(let i = 0;i<len;i++){
+						this.lists[i].choice = false;
+						const yLen = this.lists[i].data.length;
+						for(let y=0;y<yLen;y++){
+							this.lists[i].data[y].choice = false;
+						}
+					}
+					this.total = 0;
+					this.choiceNum = 0;
+				}
+			},
+			onBuy(){
+				const len = this.lists.length;
+				console.log(this.lists);
+				const goodsMsg = [];
+				this.buys = [];
+				for(let i = 0;i<len;i++){
+					// if(this.lists[i].choice){
+					const data = {
+						shop_data:[],
+						shop_id:this.lists[i].shop_id,
+						shop_name:this.lists[i].shop_name,
+						total:0,
+					};
+					const yLen = this.lists[i].data.length;
+					for(let y=0;y<yLen;y++){
+						if(this.lists[i].data[y].choice){
+							const num = np.times(this.lists[i].data[y].num,this.lists[i].data[y].price);
+							data.total = np.plus(data.total,num);
+							data.shop_data.push({
+								cart_id:this.lists[i].data[y].id,
+								type_id:this.getTypeId(this.lists[i].data[y].type_id),
+								goods_id:this.lists[i].data[y].goods_id,
+								num:this.lists[i].data[y].num,
+								typeVal:this.getTypeVal(this.lists[i].data[y].type_id),
+								total:this.lists[i].data[y].price,
+								fare:this.lists[i].data[y].freight_num,
+								product_logo:this.lists[i].data[y].image,
+								product_name:this.lists[i].data[y].title,
+							});
+						}
+						
+					}
+					this.buys.push(data);
+
+					// };
+				};
+				console.log(this.buys)
+				if(this.buys.length == 0){
+					app.$tips(this.la.shopCat8);
+					return;
+				};
+				this.onOpen();
+			},
+			toIndex(){
+				this.$emit('onNavNum',0)
+			},
+			onShopChoice(index){
+				this.lists[index].choice = !this.lists[index].choice;
+				this.shopChoiceNum = index;
+				const len = this.lists.length;
+				//子数组
+				const yLen = this.lists[index].data.length;
+				for(let y = 0;y<yLen;y++){
+					this.lists[index].data[y].choice = this.lists[index].choice? true:false;
+					const goodsTotal = np.times(this.lists[index].data[y].num,this.lists[index].data[y].price);
+					if(this.lists[index].data[y].choice){
+						this.choiceNum ++;
+						this.total = np.plus(this.total,goodsTotal);
+					}else{
+						this.choiceNum --;
+						this.total = np.minus(this.total,goodsTotal);
+					}
+				};
+				this.choiceNum == this.maxLen ? this.allOpen = true : this.allOpen = false;
+			},
+			getShopLength(){
+				const len = this.lists.length;
+				for(let i =0;i<len;i++){
+					const yLen = this.lists[i].data.length;
+					this.maxLen = np.plus(this.maxLen,yLen);
+				};
+			},
+			onChoice(index,cindex){
+				this.lists[index].data[cindex].choice = !this.lists[index].data[cindex].choice;
+				const len = this.lists[index].data.length;
+				if(this.lists[index].data[cindex].choice){
+					this.choiceNum ++;
+					let num = 0;
+					const goodsTotal = np.times(this.lists[index].data[cindex].price,this.lists[index].data[cindex].num);
+					this.total = np.plus(this.total,goodsTotal);
+					for(let i = 0;i<len;i++){
+						if(this.lists[index].data[i].choice){
+							num++;
+						}
+					};
+					if(num == this.lists[index].data.length){
+						this.lists[index].choice = true;
+					}
+				}else{
+					this.choiceNum --;
+					const goodsTotal = np.times(this.lists[index].data[cindex].price,this.lists[index].data[cindex].num);
+					this.total = np.minus(this.total,goodsTotal);
+					this.lists[index].choice = false;
+				}
+				console.log(this.maxLen)
+				this.choiceNum == this.maxLen ? this.allOpen = true : this.allOpen = false;
+			},
+			onTotalAdd(){
+				const len = this.lists.length;
+				for(let i = 0;i<len;i++){
+					this.lists[i].choice = true;
+					const product = np.times(this.lists[i].price,this.lists[i].num);
+					this.total = np.plus(this.total,product);
+				};
+			},
+			onAdd(ev,index,cindex){
+				ev.stopPropagation();
+				if(this.lists[index].data[cindex].num >=99) return;
+				this.lists[index].data[cindex].num ++;
+				if(this.lists[index].data[cindex].choice){
+					this.total = np.plus(this.total,this.lists[index].data[cindex].price);
+				}
+			},
+			onReduce(ev,index,cindex){
+				ev.stopPropagation();
+				if(this.lists[index].data[cindex].num <=1) return;
+				this.lists[index].data[cindex].num --;
+				if(this.lists[index].data[cindex].choice){
+					this.total = np.minus(this.total,this.lists[index].data[cindex].price);
+				}
+			},
+			getTypeId(typeids){
+				const len = typeids.length;
+				let ids = ''
+				for(let i =0;i<len;i++){
+					if(i == 0){
+						ids+=typeids[i].id
+					}else{
+						ids+= ','+typeids[i].id
+					}
+				};
+				console.log(ids)
+				return ids;
+			},
+			getData(){
+				app.$get('ShopCart/ShopCartList')
+				.then(res=>{
+					console.log(res);
+					if(res.data.status == 1){
+						this.allOpen = false;
+						this.lists = res.data.result;
+						this.total = 0;
+						this.choiceNum = 0;
+						this.getShopLength();
+						app.shopCatApiLock = false;
+						this.catApiLock = false;
+					}
+				})
+			},
+			getTypeVal(types){
+				const len = types.length;
+				let typeVal = '';
+				for(let i =0;i<len;i++){
+					if(i == 0){
+						typeVal += types[i].type_name +'  |';
+					}else if(i == len -1){
+						typeVal += "  " +types[i].type_name;
+					}else{
+						typeVal += "  " +types[i].type_name +'  |';
+					}
+				};
+				return typeVal;
+			},
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.box{
+		width: 750rpx;
+		flex: 1;
+	}
+	.cat-box{
+		width: 750rpx;
+		align-items: center;
+	}
+	.cat-shop{
+		width: 712rpx;
+		@include border(1rpx,solid,#FFDDA2);
+		border-radius: 8rpx;
+		margin-top: 20rpx;
+	}
+	.cat-top{
+		@include size(710rpx,80rpx,#282828);
+		flex-direction: row;
+		align-items: center;
+		border-top-left-radius: 8rpx;
+		border-top-right-radius: 8rpx;
+	}
+	.cat-top-txt{
+		@include font($e,#FFDDA2);
+		@include bold();
+	}
+	.cat{
+		width: 710rpx;
+		height: 230rpx;
+		background-color: #282828;
+		background-color: #222222;
+		// @include border(1rpx,solid,#727272);
+		flex-direction: row;
+		align-items: center;
+	}
+	.cat-choose{
+		@include size(74rpx,250rpx,none);
+		@include cen();
+		@include re();
+	}
+	.choose-box{
+		@include size(35rpx,35rpx,none);
+		border-radius: 50%;
+		@include border(1rpx,solid,#CCCCCC)
+	}
+	.choose-icon{
+		@include size(35rpx,35rpx,none);
+		@include ab()
+	}
+	.cat-bg{
+		@include size(200rpx,200rpx,none);
+	}
+	.cat-bg-s{
+		@include size(200rpx,200rpx,none);
+	}
+	.cat-msg{
+		height: 250rpx;
+		flex: 1;
+		// background-color: pink;
+	}
+	.goods-list-r-txt{
+		margin-left: 20rpx;
+		width: 364rpx;
+		height: 60rpx;
+		@include font($l,white);
+		@include bold();
+		margin-top: 27rpx;
+		lines:2;
+		text-overflow:ellipsis;
+	}
+	.goods-list-r-txt2{
+		margin-left: 20rpx;
+		height: 40rpx;
+		line-height: 40rpx;
+		border-radius: 10rpx;
+		// background-color: #F4CE8D;
+		@include font($s,white);
+		margin-top: 20rpx;
+		width: 364rpx;
+		@include tH();
+	}
+	.goods-list-moneys{
+		height:60rpx;
+		margin-top: 20rpx;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+	}
+	.goods-list-moneys-l{
+		flex-direction: row;
+		align-items: center;
+	}
+	.goods-list-moneys-l-txt{
+		@include font($x,#FFDDA2);
+		@include bold();
+		margin-top: 3rpx;
+	}
+	.goods-list-moneys-l-txt2{
+		@include font($e,#FFDDA2);
+		margin-left: 6rpx;
+	}
+	.goods-list-moneys-r{
+		@include size(180rpx,58rpx,none);
+		border-radius: 10rpx;
+		flex-direction: row;
+		@include border(1rpx,solid,#AAAAAA);
+	}
+	.goods-list-moneys-r-box1{
+		@include size(60rpx,60rpx,none);
+		border-right-color: #AAAAAA;
+		border-right-width: 1rpx;
+		@include cen()
+	}
+	.goods-list-moneys-r-txt{
+		@include font($e,white);
+		@include bold();
+	}
+	.goods-list-moneys-r-box2{
+		@include size(60rpx,60rpx,none);
+		border-left-color: #AAAAAA;
+		border-left-width: 1rpx;
+		@include cen()
+	}
+	.goods-list-moneys-r-mid{
+		flex: 1;
+		height: 60rpx;
+		@include font($e,white);
+		@include bold();
+		@include cen();
+	}
+	
+	.cat-operation-box{
+		width: 750rpx;
+		height: 142rpx;
+		align-items: center;
+	}
+	.cat-operation{
+		width: 710rpx;
+		height: 130rpx;
+		background-color: #282828;
+		border-radius: 10rpx;
+		margin-top: 5rpx;
+	}
+	.all{
+		width: 710rpx;
+		height: 45rpx;
+		// background-color: red;
+		flex-direction: row;
+		justify-content: space-between;
+		align-items: center;
+		padding-right: 18rpx;
+		margin-top: 15rpx;
+	}
+	.all-l{
+		width: 100rpx;
+		flex-direction: row;
+		align-items: center;
+		@include re();
+		margin-left: 15rpx;
+	}
+	.all-l-choose-box{
+		@include size(35rpx,35rpx,none);
+		border-radius: 50%;
+		@include border(1rpx,solid,#CCCCCC)
+	}
+	.all-l-choose-icon{
+		@include size(35rpx,35rpx,none);
+		@include ab()
+	}
+	.all-l-txt{
+		@include font($m,#999999);
+		margin-left: 10rpx;
+	}
+	.all-r{
+		flex-direction: row;
+		align-items: center;
+	}
+	.all-r-txt1{
+		@include font($s,#999999)
+	}
+	.all-r-txt2{
+		@include font($x,#fff);
+		@include bold();
+		margin-left: 10rpx;
+		margin-top: 3rpx;
+	}
+	.all-r-txt3{
+		@include font($m,#fff);
+		margin-left: 10rpx;
+	}
+	.all-btns{
+		width: 710rpx;
+		height: 50rpx;
+		flex-direction: row-reverse;
+		margin-top: 5rpx;
+	}
+	.all-btn{
+		@include size(150rpx,50rpx,#F4CE8D);
+		@include cen();
+		border-radius: 10rpx;
+		margin-right: 15rpx;
+	}
+	.all-btn2{
+		@include size(150rpx,50rpx,#666666);
+		@include cen();
+		border-radius: 10rpx;
+		margin-right: 15rpx;
+	}
+	.all-btn-txt{
+		@include font($m,#222222);
+	}
+	.cat-none{
+		width: 750rpx;
+		align-items: center;
+	}
+	.cat-none-bg{
+		@include size(260rpx,260rpx,none);
+		margin-top: 150rpx;
+	}
+	.cat-none-btn{
+		@include size(200rpx,60rpx,#282828);
+		border-radius: 30rpx;
+		@include border(1rpx,solid,#727272)
+		@include cen();
+		margin-top: 40rpx;
+	}
+	.cat-none-txt{
+		@include font($m,white);
+		margin-top: 45rpx;
+	}
+	.cat-none-btn-txt{
+		@include font($m,white);
+		@include bold();
+	}
+	.borderBottom{
+		border-bottom-right-radius: 8rpx;
+		border-bottom-left-radius: 8rpx;
+	}
+</style>

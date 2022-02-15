@@ -1,0 +1,180 @@
+<template>
+	<view class="content-head" :style="{'backgroundColor':backgroundColor}">
+		<view class="ep" :style="{height:h + 'px'}"></view>
+		<view class="content-head-box">
+			<view class="content-head-left" @tap='onBack' v-if="backOpen">
+				<image class="content-head-left-icon" src="~@/static/back.png"></image>
+				<!-- <text class="content-head-title">{{la.back}}</text> -->
+			</view>
+			<view class="content-head-left" v-if="isLogo">
+				<view class="index-logo-box">
+					<image style="width: 243rpx;height: 44rpx;" src="~@/static/lev-logo.png" mode=""></image>
+				</view>
+			</view>
+			<view class="content-head-mid" v-if="!searchOpen"><text class="content-head-mid-title">{{title}}</text></view>
+			<view class="content-search" v-if="searchOpen" @tap='toSearch'>
+				<image class="content-search-icon" src="~@/static/search.png"></image>
+				<text class="content-search-txt">{{placeholder}}</text>
+			</view>
+			<view class="content-head-right" @tap='onIcon' v-if="iconOpen && icon == 1 || iconOpen && icon == 2|| iconOpen && icon == 3">
+				<image class="content-head-right-icon1" v-if="iconOpen && icon == 1" src="~@/static/index/msg.png"></image>
+				<image class="content-head-right-icon2" v-if="iconOpen && icon == 2" src="~@/static/record.png"></image>
+				<view class="content-head-right-box" v-if="iconOpen && icon == 3">
+					<image class="content-head-right-icon3" src="~@/static/icon1.png" mode=""></image>
+					<text class="content-head-right-txt">申请专题</text>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	export default {
+		props:{
+			isLogo:{
+				default:false,//是否展示左上角LOGO
+			},
+			title:{
+				default:"navName"
+			},
+			placeholder:{
+				default:'搜索关注的内容'
+			},
+			backgroundColor:{
+				default:'#fff'
+				// default:'red'
+			},
+			backNum:{
+				default:1
+			},
+			iconOpen:{
+				default:false
+			},
+			backOpen:{
+				default:true
+			},
+			icon:{
+				default:1
+			},
+			bakcMsh:{
+				default:'返回'
+			},
+			searchOpen:{
+				default:false
+			},
+		},
+		data(){
+			return{
+				h:30,
+				la:{},
+			}
+		},
+		created(){
+			this.h = app.osStateH;
+			this.la = app.getHwhLang();
+		},
+		methods:{
+			onBack(){
+				const num = this.backNum *1 ;
+				console.log(num)
+				uni.navigateBack({
+					delta:num
+				});
+			},
+			toSearch(){
+				this.$emit('toSearch')
+			},
+			onIcon(){
+				this.$emit('onIcon')
+			},
+			onIcon2(){
+				this.$emit('onIcon2')
+			},
+			onIcon3(){
+				this.$emit('onIcon3')
+			},
+			onSearch(ev){
+				console.log(ev.detail.value);
+				this.$emit('onSearch',ev.detail.value)
+			},
+		}
+	}
+</script>
+
+<style lang="scss">
+	.ep{
+		width: 750rpx;
+	}
+	.content-head-right{
+		@include cen();
+		@include ab();
+		right: 40rpx;
+	}
+	.content-head-right-box{
+		flex-direction: row;
+		align-items: center;
+	}
+	.content-head-right-icon1{
+		@include size(40rpx,40rpx,none);
+	}
+	.content-head-right-icon2{
+		@include size(43rpx,47rpx,none);
+	}
+	.content-head-right-icon3{
+		@include size(32rpx,32rpx,none);
+	}
+	.content-head-right-txt{
+		@include font($m,#333);
+		@include bold();
+		margin-left: 10rpx;
+	}
+	.content-head-right-icon4{
+		@include size(32rpx,40rpx,none);
+		margin-left: 30rpx;
+	}
+	.content-head-right-icon6{
+		@include size(40rpx,40rpx,none);
+	}
+	.content-head-right-icon5{
+		@include size(42rpx,42rpx,none);
+		margin-left: 20rpx;
+	}
+	.content-head-right-icon7{
+		@include size(50rpx,50rpx,none)
+	}
+	.content-search{
+		@include size(280rpx,66rpx,#F3F3F3);
+		border-radius: 30rpx;
+		@include cen();
+		@include ab();
+		right: 20rpx;
+	}
+	.content-head-mid-title{
+		@include font($el,#333);
+		@include bold();
+	}
+	.content-search-input{
+		@include size(410rpx,60rpx,none);
+		padding-left: 30rpx;
+		padding-right: 30rpx;
+		@include font($m,white);
+		text-align: center;
+	}
+	.content-search-txt{
+		@include font($l,#999);
+		@include bold();
+		margin-left: 5rpx;
+	}
+	.content-search-icon{
+		@include size(29rpx,29rpx,none);
+	}
+	.index-logo-box{
+		border-radius: 7rpx;
+		@include size(243rpx,44rpx,none);
+		@include cen();
+	}
+	.index-logo{
+		@include font($m,white);
+	}
+</style>

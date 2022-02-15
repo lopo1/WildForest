@@ -1,0 +1,139 @@
+<template>
+	<cover-view class="share-popup"  :style="{height:windowHeight + 'px'}" v-if="show">
+		<view class="share" :class="{goodsTypeActive:open}">
+			<view class="taps">
+				<view class="tap">
+					<image class="tap-icon" src="~@/static/share/icon1.png" mode=""></image>
+					<text class="tap-txt">{{la.share1}}</text>
+				</view>
+				<view class="tap">
+					<image class="tap-icon" src="~@/static/share/icon3.png" mode=""></image>
+					<text class="tap-txt">{{la.share2}}</text>
+				</view>
+				<view class="tap">
+					<image class="tap-icon" src="~@/static/share/icon2.png" mode=""></image>
+					<text class="tap-txt">QQ</text>
+				</view>
+				<view class="tap" @tap="onTailoring">
+					<image class="tap-icon" src="~@/static/share/icon5.png" mode=""></image>
+					<text class="tap-txt">{{la.share4}}</text>
+				</view>
+			</view>
+			<view class="cancel" @tap="onClose"><text class="cancel-txt">取消</text></view>
+		</view>
+	</cover-view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	import np from '@/common/np.js';
+	export default {
+		watch:{
+			getShow(val){
+				const _this = this;
+				if(val){
+					this.show = val;
+					this.$nextTick(()=>{
+						this.getSystemHeight();
+						setTimeout(()=>{
+							_this.open = val;
+							
+						},300)
+					});
+				}else{
+					this.$nextTick(()=>{
+						this.open = val;
+						setTimeout(()=>{
+							_this.show = val;
+						},300);
+					})
+				}
+			},
+		},
+		data(){
+			return{
+				open:false,
+				show:false,
+				total:"--",
+				goodsNum:1,
+				typeVal:"",
+				typeIds:'',//类型ID组合
+				windowHeight:0
+			}
+		},
+		props:{
+			getShow:{
+				//用于接收
+				default:false
+			},
+			la:{
+				default:{}
+			}
+		},
+		methods:{
+			onClose(){
+				this.$emit('onClose')
+			},
+			getSystemHeight(){
+				//获取系统可用高度
+				this.windowHeight = app.osHeight;
+			
+			},
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.share-popup{
+		@include ab();
+		width: 750rpx;
+		border-radius: 8rpx;
+		align-items: center;
+	}
+	.share{
+		width: 750rpx;
+		height: 250rpx;
+		transition-property:transform;
+		transition-duration:.2s;
+		transform: translateY(250rpx);
+		// padding-bottom: 50rpx;
+		align-items: center;
+		border-radius: 10rpx;
+		@include ab();
+		bottom: 0;
+		background-color:#FFF;
+	}
+	.goodsTypeActive{
+		transform: translateY(0rpx);
+	}
+	.taps{
+		@include size(750rpx,170rpx,#F4F4F4);
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding-left: 40rpx;
+		padding-right: 40rpx;
+	}
+	.tap{
+		@include size(140rpx,170rpx,none);
+		align-items: center;
+		justify-content: center;
+	}
+	.tap-icon{
+		@include size(80rpx,80rpx,none);
+		border-radius: 5rpx;
+	}
+	.tap-txt{
+		@include font($m,#333);
+		@include bold();
+		margin-top: 10rpx;
+	}
+	.cancel{
+		@include size(750rpx,80rpx,white);
+		@include cen()
+	}
+	.cancel-txt{
+		@include font($e,#666666);
+		@include bold();
+	}
+</style>

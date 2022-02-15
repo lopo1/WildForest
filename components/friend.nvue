@@ -1,0 +1,351 @@
+<template>
+	<view class="popup" :style="{height:h+'px'}" @tap='isClick' v-if="open" :class="{show:show}">
+		<view class="center">
+			<!-- <gcanvas class="canvas" id='gcanvess' ref="gcanvess" fillStyle="#EEEEEE"></gcanvas> -->
+			
+			<view class="canvas-box">
+				<image class="left" @tap='onLast' src="~@/static/index/left.png"></image>
+				<view class="swiper-box" id="canvas">
+					<swiper class="canvas-swiper" @change="onSwiper" :current="swiperNum" @animationfinish='onAnimationfinish'>
+						<swiper-item class="canvas-swiper-item">
+							<view class="canvas">
+								<image class="canvas-bg" src="~@/static/my/friend/friend.png"></image>
+								<text class="canvas-txt">我的邀请码</text>
+								<text class="canvas-txt2">{{promotionCode}}</text>
+								<image class="canvas-img" :src="qr?qr:'/static/logo.png'"></image>
+							</view>
+						</swiper-item>
+						<swiper-item class="canvas-swiper-item">
+							<view class="canvas">
+								<image class="canvas-bg" src="~@/static/my/friend/friend2.png"></image>
+								<text class="canvas-txt">我的邀请码</text>
+								<text class="canvas-txt2">{{promotionCode}}</text>
+								<image class="canvas-img" :src="qr?qr:'/static/logo.png'"></image>
+							</view>
+						</swiper-item>
+						<swiper-item class="canvas-swiper-item">
+							<view class="canvas">
+								<image class="canvas-bg" src="~@/static/my/friend/friend3.png"></image>
+								<text class="canvas-txt">我的邀请码</text>
+								<text class="canvas-txt2">{{promotionCode}}</text>
+								<image class="canvas-img" :src="qr?qr:'/static/logo.png'"></image>
+							</view>
+						</swiper-item>
+						<swiper-item class="canvas-swiper-item">
+							<view class="canvas">
+								<image class="canvas-bg" src="~@/static/my/friend/friend4.png"></image>
+								<text class="canvas-txt">我的邀请码</text>
+								<text class="canvas-txt2">{{promotionCode}}</text>
+								<image class="canvas-img" :src="qr?qr:'/static/logo.png'"></image>
+							</view>
+						</swiper-item>
+						<swiper-item class="canvas-swiper-item">
+							<view class="canvas">
+								<image class="canvas-bg" src="~@/static/my/friend/friend5.png"></image>
+								<text class="canvas-txt">我的邀请码</text>
+								<text class="canvas-txt2">{{promotionCode}}</text>
+								<image class="canvas-img" :src="qr?qr:'/static/logo.png'"></image>
+							</view>
+						</swiper-item>
+					</swiper>
+				</view>
+				<image class="left" @tap='onNext'src="~@/static/index/right.png"></image>
+			</view>
+			
+			<view class="my-btns">
+				<view class="my-btn" @tap="onTailoring">
+					<text class="my-btn-txt">保存到相册</text>
+				</view>
+				<view class="my-btn" @tap="onCopy">
+					<text class="my-btn-txt">复制邀请码</text>
+				</view>
+			</view>
+		</view>
+		<image class="gb" src="~@/static/gb2.png" @tap='onOff'></image>
+	</view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	export default {
+		watch:{
+			open(val){
+				const _this = this;
+				if(val){
+					this.$nextTick(()=>{
+						setTimeout(()=>{
+							_this.show = val;
+						},300)
+					});
+				}
+			}
+		},
+		props:{
+			info:{
+				default:{
+					head_img:'',
+					nickname:"",
+					introduction:"",
+				}
+			},
+			open:{
+				default:false
+			},
+			promotionCode:{
+				default:0
+			},
+			qr:{
+				default:0
+			},
+		},
+		data(){
+			return{
+				h:'',
+				show:false,
+				context:"",
+				canvasObj:"",
+				flashs:[],
+				windowWidth:0,
+				tai:true,
+				uidShow:false,
+				la:{},
+				H:0,
+				qr:'',
+				code:'--',
+				width:'',
+				height:463,
+				width:360,
+				left:46,
+				top:118.33333587646484,
+				swiperNum:0,
+				isSave:true,
+			}
+		},
+		created() {
+			this.h = app.osHeight;
+			
+		},
+		mounted() {
+			const _this = this;
+			 
+		},
+		methods:{
+			onCopy(){
+				const _this = this;
+				uni.setClipboardData({
+					data:this.promotionCode,
+					success: function () {
+						console.log('success');
+						app.$tips('保存成功')
+					}
+				})
+			},
+			onTransition(){
+				this.isSave = false;
+			},
+			onAnimationfinish(){
+				setTimeout(()=>{
+					this.isSave = true;
+				},500)
+			},
+			onSwiper(ev){
+				this.swiperNum = ev.detail.current;
+			},
+			onNext(){
+				this.swiperNum ++;
+				if(this.swiperNum > 4){
+					this.swiperNum = 4;
+				}
+			},
+			onLast(){
+				console.log(this.swiperNum)
+				this.swiperNum --;
+				if(this.swiperNum < 0){
+					this.swiperNum = 0;
+				}
+			},
+			isClick(){},
+			getStamp(){
+				const date = new Date();
+				const time = date.getTime();
+				return time
+			},
+			onClose(){
+				this.$nextTick(()=>{
+					this.show = false;
+					setTimeout(()=>{
+						this.open = false;
+					},400)
+				})
+			},
+			onOff(){
+				this.$emit('onClose');
+			},
+			onTailoring(){
+				//this.la.screenCapture
+				const _this = this;
+				this.uidShow = true;
+				if(this.tai && this.isSave){
+					this.tai = false;
+					uni.showLoading();
+					setTimeout(()=>{
+						const query = uni.createSelectorQuery().in(this);
+						query.select('#canvas').boundingClientRect(data => {
+							_this.left = data.left;
+							_this.top = data.top;
+							_this.height = data.height;
+							_this.$nextTick(()=>{
+								setTimeout(()=>{
+									let pages = getCurrentPages();
+									let page = pages[pages.length - 1];  
+									let ws = page.$getAppWebview();  
+									let bitmap = new plus.nativeObj.Bitmap('jjShop'); 
+									ws.draw(bitmap, () => {  
+									  const time = _this.getStamp();
+									  bitmap.save("_doc/jjShop"+time+".jpg", {  
+									    overwrite: true,
+										"format":"jpg",
+										"quality":50
+									  }, res => {  
+										_this.uidShow = false;
+										uni.saveImageToPhotosAlbum({
+											filePath:res.target,
+											success(){
+												uni.hideLoading();
+												app.$tips('保存成功');
+											},
+											
+										})
+									  }, error => { 
+										  uni.hideLoading();
+										  _this.tai = true;
+										 _this.uidShow = false;
+									  });  
+									  
+									  setTimeout(()=>{
+										  _this.tai = true;
+										  uni.hideLoading();
+										  bitmap.clear();
+									  },1000) // this.la.eliminateBitmapthis.la.object  
+									}, error => {
+										uni.hideLoading();
+										_this.tai = true;
+										_this.uidShow = false;
+									}, {  
+									  check: true, // this.la.setToDetectWhiteScreen  
+									  clip:{top:_this.top+'px',left:_this.left+'px',height:100 - (app.osHeight - _this.height -_this.top)/app.osHeight*100 + '%',width:(100 - _this.left/app.osWidth*100) + '%'}
+									});
+								},1000)
+								
+							})
+						}).exec()
+					},1000)
+				}
+				
+				
+			},
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.gb{
+		@include size(60rpx,60rpx,none);
+		@include ab();
+		right: 60rpx;
+		top: 130rpx;
+	}
+	.canvas-txt{
+		@include font($m,#333);
+		@include bold();
+		@include ab();
+		bottom: 81rpx;
+		left: 30rpx;
+	}
+	.canvas-txt2{
+		@include font($el,#333);
+		@include bold();
+		@include ab();
+		bottom: 38rpx;
+		left: 30rpx;
+	}
+	.canvas-img{
+		@include size(90rpx,90rpx,none);
+		@include ab();
+		bottom: 25rpx;
+		right: 30rpx;
+	}
+	.img1{
+		@include ab();
+	}
+	.canvas-swiper-item{
+		@include size(560rpx,965rpx,none);
+	}
+	.canvas-swiper{
+		@include size(560rpx,965rpx,none);
+	}
+	.canvas-box{
+		width: 750rpx;
+		height: 965rpx;
+		// background-color: white;
+		flex-direction: row;
+		justify-content: space-between;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+		align-items: center;
+	}
+	.left{
+		@include size(65rpx,65rpx,none);
+	}
+	.swiper-box{
+		@include size(560rpx,965rpx,none);
+	}
+	.canvas-bg{
+		width: 560rpx;
+		height: 965rpx;
+		@include ab();
+		left: 0;
+		top: 0;
+	}
+	.canvas{
+		width: 560rpx;
+		height: 965rpx;
+		border-radius: 10rpx;
+		@include re();
+	}
+	.my-btns{
+		@include size(560rpx,70rpx,none);
+		flex-direction: row;
+		margin-top: 30rpx;
+		justify-content: space-between;
+	}
+	.my-btn{
+		@include size(260rpx,70rpx,#1890FF);
+		@include cen();
+		border-radius: 35rpx
+	}
+	.my-btn-txt{
+		@include font($m,white);
+		@include bold();
+	}
+	.center{
+		width: 750rpx;
+		height: 1165rpx;
+		align-items: center;
+		@include re();
+	}
+	.popup{
+		width: 750rpx;
+		background-color: rgba(0,0,0,0.7);
+		transition-duration: .4s;
+		transition-property:opacity;
+		opacity: 0;
+		@include ab();
+		left: 0;
+		top:0;
+		@include cen();
+	}
+	.show{
+		opacity: 1;
+	}
+</style>

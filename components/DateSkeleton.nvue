@@ -1,0 +1,150 @@
+<template>
+	<!--日期骨架-->
+	<view class="skeleton" ref='skeleton' :style="{height:h + 'px'}" v-if="hide">
+		<view class="skeleton-top">
+			<view class="skeleton-info" style="width: 100rpx;"></view>
+			<view class="skeleton-icon"></view>
+		</view>
+		<view class="skeleton-top">
+			<view class="skeleton-tap"></view>
+			<view class="skeleton-icon" style="width: 20rpx;height: 20rpx;" v-for="item in 7"></view>
+			<view class="skeleton-tap"></view>
+		</view>
+		<view class="skeleton-news" v-for="item in 2">
+			<view class="skeleton-info" style="width: 600rpx;"></view>
+			<view class="skeleton-info" style="width: 400rpx;margin-top: 20rpx;"></view>
+		</view>
+	</view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	const Binding = uni.requireNativePlugin('bindingx');
+	export default {
+		watch:{
+			getHide(val){
+				if(val){
+					this.onOpacityOff();
+				}
+			},
+		},
+		data(){
+			return{
+				hide:true,
+				h:0
+			}
+		},
+		props:{
+			getHide:{
+				//控制是否出现
+				default:false
+			},
+		},
+		created() {
+			this.h = app.osHeight;
+		},
+		methods:{
+			onSkeleton(){
+				this.hide = false;
+				this.$emit('onSkeleton')
+			},
+			onOpacityOn(){
+				//渐变动画
+				const el = this.$refs.skeleton.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[
+						{
+							element: el,
+							property: 'opacity',
+							expression: 'linear(t,0,+1,300)'
+						},
+						{
+							element: el,
+							property: 'transform.translateY',
+							expression: 'linear(t,-50,+50,300)'
+						},
+					]
+				},(res)=>{
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    })
+					}
+				});
+			},
+			onOpacityOff(){
+				//关闭显影
+				
+				const el = this.$refs.skeleton.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[
+						{
+							element: el,
+							property: 'opacity',
+							expression: 'linear(t,1,-1,300)'
+						},
+						{
+							element: el,
+							property: 'transform.translateY',
+							expression: 'linear(t,0,-50,300)'
+						},
+					]
+				},(res)=>{
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    });
+						this.onSkeleton();
+					}
+				});
+			},
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.skeleton{
+		width: 750rpx;
+		background-color: $setoff;
+		align-items: center;
+		@include ab();
+		left: 0;
+		top: 0;
+		padding-top: 80rpx;
+	}
+	.skeleton-top{
+		@include size(710rpx,100rpx,$theme);
+		border-radius: 15rpx;
+		flex-direction: row;
+		justify-content: space-between;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+		align-items: center;
+		margin-top: 20rpx;
+	}
+	.skeleton-tap{
+		@include size(20rpx,40rpx,$setoff);
+		border-radius: 20rpx;
+		
+	}
+	.skeleton-info{
+		height: 40rpx;
+		border-radius: 15rpx;
+		background-color: $setoff;
+	}
+	.skeleton-icon{
+		@include size(40rpx,40rpx,$setoff);
+		border-radius: 50%;
+	}
+	.skeleton-news{
+		@include size(710rpx,400rpx,$theme);
+		border-radius: 15rpx;
+		margin-top: 20rpx;
+		padding-left: 20rpx;
+		padding-top: 20rpx;
+	}
+</style>

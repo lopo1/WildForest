@@ -1,0 +1,299 @@
+<template>
+	<!--首页骨架-->
+	<view class="skeleton" ref='skeleton' :style="{height:h + 'px'}" v-if="hide">
+		<view class="bigbox" @tap="onOpacityOff">
+			<view class="swiper-img"></view>
+			<view class="swiper-items">
+				<view class="swiper-item1"></view>
+				<view class="swiper-item1" style="margin-left: 10rpx;"></view>
+				<view class="swiper-item2"></view>
+			</view>
+		</view>
+		<view class="notice">
+			<view class="notice-left"></view>
+			<view class="notice-right"></view>
+		</view>
+		<view class="taps">
+			<view class="tap"></view>
+			<view class="tap"></view>
+			<view class="tap"></view>
+			<view class="tap"></view>
+			<view class="tap"></view>
+		</view>
+		<view class="goods">
+			<view class="good" v-for="item in 5">
+				<view class="good-top"></view>
+				<view class="good-title"></view>
+				<view class="good-text-box">
+					<view class="good-text"></view>
+				</view>
+			</view>
+		</view>
+		<view class="warps">
+			<view class="warp">
+				<view class="warp-top"></view>
+				<view class="warp-title"></view>
+				<view class="warp-title2-box">
+					<view class="warp-title2"></view>
+				</view>
+				<view class="warp-title3-box">
+					<view class="warp-title3"></view>
+				</view>
+			</view>
+			<view class="warp">
+				<view class="warp-top"></view>
+				<view class="warp-title"></view>
+				<view class="warp-title2-box">
+					<view class="warp-title2"></view>
+				</view>
+				<view class="warp-title3-box">
+					<view class="warp-title3"></view>
+				</view>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	const Binding = uni.requireNativePlugin('bindingx');
+	export default {
+		watch:{
+			getHide(val){
+				if(val){
+					this.onOpacityOff();
+				}
+			},
+		},
+		data(){
+			return{
+				hide:true,
+				h:0
+			}
+		},
+		props:{
+			getHide:{
+				//控制是否出现
+				default:false
+			},
+		},
+		created() {
+			this.h = app.osHeight;
+		},
+		methods:{
+			onSkeleton(){
+				this.hide = false;
+				this.$emit('onSkeleton')
+			},
+			onOpacityOn(){
+				//渐变动画
+				const el = this.$refs.skeleton.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[
+						{
+							element: el,
+							property: 'opacity',
+							expression: 'linear(t,0,+1,300)'
+						},
+						{
+							element: el,
+							property: 'transform.translateY',
+							expression: 'linear(t,-50,+50,300)'
+						},
+					]
+				},(res)=>{
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    })
+					}
+				});
+			},
+			onOpacityOff(){
+				//关闭显影
+				
+				const el = this.$refs.skeleton.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[
+						{
+							element: el,
+							property: 'opacity',
+							expression: 'linear(t,1,-1,300)'
+						},
+						{
+							element: el,
+							property: 'transform.translateY',
+							expression: 'linear(t,0,-50,300)'
+						},
+					]
+				},(res)=>{
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    });
+						this.onSkeleton();
+					}
+				});
+			},
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.skeleton{
+		width: 750rpx;
+		background-color: $setoff;
+		align-items: center;
+		@include ab();
+		left: 0;
+		top: 0;
+		padding-top: 80rpx;
+	}
+	.notice{
+		height: 70rpx;
+		width: 710rpx;
+		background-color: $theme;
+		margin-top: 20rpx;
+		border-radius: 15rpx;
+		flex-direction: row;
+		align-items: center;
+		padding-left: 20rpx;
+	}
+	
+	.notice-left{
+		@include size(50rpx,50rpx,$setoff);
+		border-radius: 50%;
+	}
+	.notice-right{
+		@include size(600rpx,50rpx,$setoff);
+		border-radius: 15rpx;
+		margin-left: 20rpx;
+	}
+	.taps{
+		@include size(710rpx,140rpx,$theme);
+		margin-top: 20rpx;
+		border-radius: 15rpx;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+	}
+	.tap{
+		width: 120rpx;
+		height: 120rpx;
+		background-color: $setoff;
+		border-radius: 15rpx;
+		// margin-left: 20rpx;
+	}
+	.goods{
+		@include size(710rpx,200rpx,$theme);
+		border-radius: 15rpx;
+		margin-top: 20rpx;
+		flex-direction: row;
+		align-items: center;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+		justify-content: space-between;
+	}
+	.good{
+		@include size(120rpx,180rpx,$setoff);
+		border-radius: 15rpx;
+		align-items: center;
+		padding-top: 10rpx;
+	}
+	.good-top{
+		@include size(100rpx,100rpx,$theme);
+		border-radius: 15rpx;
+	}
+	.good-title{
+		@include size(100rpx,30rpx,$theme);
+		border-radius: 5rpx;
+		margin-top: 10rpx;
+	}
+	.good-text-box{
+		@include size(120rpx,20rpx,none);
+		margin-top: 10rpx;
+		padding-left: 12rpx;
+	}
+	.good-text{
+		@include size(50rpx,20rpx,$theme);
+		border-radius: 5rpx;
+	}
+	.warps{
+		@include size(710rpx,520rpx,$theme);
+		border-radius: 15rpx;
+		margin-top: 20rpx;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		padding-left: 20rpx;
+		padding-right: 20rpx;
+	}
+	.warp{
+		@include size(330rpx,480rpx,$setoff);
+		border-radius: 15rpx;
+		align-items: center;
+	}
+	.warp-top{
+		@include size(310rpx,325rpx,$theme);
+		border-radius: 15rpx;
+		margin-top: 10rpx;
+	}
+	.warp-title2-box{
+		width: 330rpx;
+		padding-left: 10rpx;
+		margin-top: 10rpx;
+	}
+	.warp-title{
+		@include size(310rpx,40rpx,$theme);
+		border-radius: 10rpx;
+		margin-top: 10rpx;
+	}
+	.warp-title2{
+		@include size(200rpx,40rpx,$theme);
+		border-radius: 10rpx;
+	}
+	.warp-title3-box{
+		width: 335rpx;
+		padding-left: 10rpx;
+		margin-top: 10rpx;
+		flex-direction: row;
+		align-items: center;
+	}
+	.warp-title3{
+		@include size(120rpx,35rpx,$theme);
+		border-radius: 10rpx;
+	}
+	.bigbox{
+		@include size(710rpx,350rpx,$theme);
+		border-radius: 15rpx;
+		margin-top: 10rpx;
+		align-items: center;
+		padding-top: 20rpx;
+	}
+	.swiper-img{
+		@include size(670rpx,280rpx,$setoff);
+		border-radius: 15rpx;
+	}
+	.swiper-items{
+		width: 670rpx;
+		height: 50rpx;
+		flex-direction: row;
+		align-items: center;
+		justify-content: center;
+	}
+	.swiper-item1{
+		@include size(12rpx,12rpx,$setoff);
+		border-radius: 50%;
+	}
+	.swiper-item2{
+		@include size(50rpx,12rpx,$setoff);
+		border-radius:10rpx;
+		margin-left: 10rpx;
+	}
+</style>

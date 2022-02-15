@@ -1,0 +1,226 @@
+<template>
+	<view class="class-box">
+		<scroll-view class="class-left" scroll-y="true">
+			<view class="class-left-item" v-for="(item,index) in taps" :class="{classActive:tapsNum == index}" @tap="onTap(index)">
+				<text class="class-left-item-txt" :class="{classTextActive:tapsNum == index}">{{item.class_name}}</text>
+			</view>
+		</scroll-view>
+		<list class="class-right" ref='list'>
+			<!-- <refresh class="loading" @refresh="onRefresh" @pullingdown="onPullingdown" :display="refreshLock ? 'show' : 'hide'">
+				<text class="loading-val">{{myloading}}</text>
+			</refresh> -->
+			<cell class="class-title">
+				<view class="class-title-box">
+					<image class="class-title-box-left" src="~@/static/index/shop/title-icon.png"></image>
+					<text class="class-title-box-txt">{{className}}</text>
+					<image class="class-title-box-right" src="~@/static/index/shop/title-icon.png"></image>
+				</view>
+			</cell>
+			<cell class="class-goods">
+				<!-- <view class="class-goods-title">
+					<view class="class-goods-title-box">
+						<text class="class-goods-title-txt1">男士内搭</text>
+						<text class="class-goods-title-txt2">更多 ></text>
+					</view>
+				</view> -->
+				<view class="class-goods-item-box">
+					<view class="class-goods-item" @tap="toClassType(className,index)" v-for="(item,index) in classLists">
+						<image src="~@/static/shop.jpg" class="class-goods-item-icon"></image>
+						<view class="class-goods-item-title-box">
+							<text class="class-goods-item-title">{{item.class_name}}</text>
+						</view>
+					</view>
+				</view>
+				<cell class="lists-nonemsg">
+					<view class="lists-nonemsg-line" v-if="isMsg"></view>
+					<text class="lists-nonemsg-txt" v-if="isMsg">{{loadingMsg}}</text>
+					<view class="lists-nonemsg-line" v-if="isMsg"></view>
+				</cell>
+			</cell>
+		</list>
+	</view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	export default {
+		data(){
+			return{
+				loadingMsg:'正在努力更新',
+				isMsg:false,
+				refreshLock:false,//是否刷新
+				myloading:"下拉即可刷新...",
+				tapsNum:0,
+				taps:[
+					{class_name:'...'}
+				],
+				classLists:[],
+				apiLock:true,
+				className:"",
+				
+			}
+		},
+		mounted() {
+			this.getData();
+		},
+		props:{
+			la:{
+				default:{}
+			}
+		},
+		methods:{
+			onTap(index){
+				if(this.apiLock){
+					this.apiLock = false;
+					this.tapsNum = index;
+					this.className = this.taps[index].class_name;
+					console.log(this.taps)
+					app.$get('ShopHome/ClassHome',{class_id:this.taps[index].id})
+					.then(res=>{
+						console.log(res)
+						this.apiLock = true;
+						if(res.data.status == 1){
+							this.classLists = res.data.result;
+							app.classLists = res.data.result;
+							// this.taps = res.data.result;
+						}
+					});
+				}
+				
+			},
+			getData(){
+				app.$get('ShopHome/ClassHome',{class_id:0})
+				.then(res=>{
+					console.log(res)
+					if(res.data.status == 1){
+						this.taps = res.data.result;
+						this.onTap(0);
+					}
+				})
+			},
+			toClassType(name,index){
+				app.$next('index/classType/classType',{title:name,index})
+			},
+			onRefresh(){
+				//下拉刷新
+				this.refreshLock = true;
+				this.myloading = this.la.refresh3;
+				setTimeout(()=>{
+					this.refreshLock = false;
+				},1000);
+				// setTimeout(()=>{
+				// 	this.$refs['list'].resetLoadmore();
+				// },1000);
+			},
+			onPullingdown(ev){
+				//下拉距离
+				if (Math.abs(ev.pullingDistance) > Math.abs(ev.viewHeight)) {
+					this.myloading = this.la.refresh4;
+				} else {
+					this.myloading = this.la.refresh1;
+				};
+			},
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.class-box{
+		flex: 1;
+		flex-direction: row;
+	}
+	.class-left{
+		width: 160rpx;
+		background-color: #343434;
+	}
+	.class-left-item{
+		transition-property:background-color;
+		transition-duration:.5s;
+		@include size(160rpx,80rpx,none);
+		@include cen();
+	}
+	.class-left-item-txt{
+		transition-property:color;
+		transition-duration:.5s;
+		@include font($l,#FFDDA2);
+		@include bold();
+	}
+	.classActive{
+		background-color: #FFD180;
+	}
+	.classTextActive{
+		color: #222222;
+	}
+	.class-right{
+		width: 590rpx;
+		flex: 1;
+		background-color: #222222;
+	}
+	.loading{
+		width: 590rpx;
+	}
+	.class-title{
+		width: 590rpx;
+		height: 80rpx;
+		@include cen()
+	}
+	.class-title-box{
+		flex-direction: row;
+		align-items: center;
+	}
+	.class-title-box-left{
+		@include size(28rpx,30rpx,none);
+		margin-right: 20rpx;
+	}
+	.class-title-box-txt{
+		@include font($e,#FFDDA2);
+		@include bold();
+	}
+	.class-title-box-right{
+		@include size(28rpx,30rpx,none);
+		margin-left: 20rpx;
+	}
+	.class-goods-title{
+		width: 590rpx;
+		@include cen()
+		// @include font($s,#FFDDA2);
+		// @include bold();
+	}
+	.class-goods-title-box{
+		width: 550rpx;
+		height: 60rpx;
+		flex-direction: row;
+		justify-content: space-between;
+		border-bottom-color: #FFDDA2;
+		border-bottom-width: 1rpx;
+	}
+	.class-goods-title-txt1{
+		@include font($s,#FFDDA2);
+		@include bold();
+	}
+	.class-goods-title-txt2{
+		@include font($x,#AAAAAA)
+	}
+	.class-goods-item-box{
+		width: 590rpx;
+		flex-direction: row;
+		flex-wrap: wrap;
+	}
+	.class-goods-item{
+		@include size(180rpx,250rpx,none);
+		align-items: center;
+		margin-left: 15rpx;
+		margin-top: 10rpx;
+	}
+	.class-goods-item-icon{
+		@include size(180rpx,180rpx,none);
+		border-radius: 5rpx;
+	}
+	.class-goods-item-title-box{
+		@include size(180rpx,70rpx,none);
+		@include cen();
+	}
+	.class-goods-item-title{
+		@include font($s,#FEFEFE);
+	}
+</style>

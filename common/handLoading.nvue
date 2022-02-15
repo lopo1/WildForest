@@ -1,0 +1,111 @@
+<template>
+	<view class="handLoading" ref='handLoading' :style="{height:h+'px'}" v-if="show">
+		<sn-lottie-view
+			class='lottie-handLoading'
+		    ref="lottieHand"
+		    :autoPlay="true"
+			:speed='1'
+			:loopCount='999'
+		    src="/static/lottie/whiteHand.json"
+		/>
+	</view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	const Binding = uni.requireNativePlugin('bindingx');
+	export default {
+		watch:{
+			open(val){
+				const _this = this;
+				if(val){
+					// this.getSystemHeight();
+					this.show = val;
+					this.$nextTick(()=>{
+						this.onOpacityOn();
+					});
+				}else{
+					this.$nextTick(()=>{
+						this.onOpacityOff();
+						setTimeout(()=>{
+							_this.show = val;
+						},300);
+					})
+				}
+			}
+		},
+		data(){
+			return{
+				h:0,
+				show:false,//控制动画
+				windowHeight:0,//设备可使用高度
+			}
+		},
+		props:{
+			open:{
+				//控制是否出现
+				default:false
+			},
+		},
+		created() {
+			this.h = app.osHeight
+		},
+		methods:{
+			onOpacityOn(){
+				//渐变动画
+				const el = this.$refs.handLoading.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[{
+						element: el,
+						property: 'opacity',
+						expression: 'linear(t,0,+1,300)'
+					}]
+				},(res)=>{
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    })
+					}
+				})
+			},
+			onOpacityOff(){
+				//关闭显影
+				const el = this.$refs.handLoading.ref;
+				const opacity = Binding.bind({
+					eventType:'timing',
+					exitExpression:'t>300',
+					props:[{
+						element: el,
+						property: 'opacity',
+						expression: 'linear(t,1,-1,300)'
+					}]
+				},(res)=>{
+					if (res.state === 'exit') {
+					    Binding.unbind({
+					        token: el
+					    })
+					}
+				})
+			},
+			getSystemHeight(){
+				//获取系统可用高度
+				this.windowHeight = app.osHeight;
+			},
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.handLoading{
+		width: 750rpx;
+		background-color: rgba(51,51,51,.6);
+		@include ab();
+		@include cen();
+		opacity: 0;
+	}
+	.lottie-handLoading{
+		@include size(750rpx,600rpx,none);
+	}
+</style>

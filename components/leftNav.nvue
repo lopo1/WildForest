@@ -1,0 +1,339 @@
+<template>
+	<view class="leftNav" :style="{height:h+'px'}" v-if="open" :class="{show:show}" @tap='onOff'>
+		<view class="left" :class="{move:show}" @tap='isClick'>
+			<view class="head" :style="{marginTop:top+'px'}">
+				<image class="back" src="~@/static/back.png" mode="" @tap='onOff'></image>
+			</view>
+			<view class="hand">
+				<image class="hand-icon" :src="info.head_img? info.head_img:'/static/logo.png'" mode=""></image>
+				<view class="mid">
+					<text class="mid-txt">{{info.nickname}}</text>
+					<text class="mid-txt2">{{info.introduction? info.introduction :'这人很懒，什么都没留下'}}</text>
+				</view>
+			</view>
+			<view class="info">
+				<view class="info-list" @tap='toAttention'>
+					<text class="info-list-txt">{{concernNum}}</text>
+					<text class="info-list-txt2">关注的人</text>
+				</view>
+				<view class="info-list" @tap='toFans'>
+					<text class="info-list-txt">{{fansNum}}</text>
+					<text class="info-list-txt2">我的粉丝</text>
+				</view>
+				<view @tap="toMyGuild" class="info-list">
+					<text class="info-list-txt">{{guildNum}}</text>
+					<text class="info-list-txt2">我的公会</text>
+				</view>
+			</view>
+			<view class="title">
+				<text class="title-txt">我的内容</text>
+			</view>
+			<view @tap="toMyMessage" class="list">
+				<view class="icon-box">
+					<image class="icon1" src="~@/static/society/left/left1.png" mode="widthFix"></image>
+				</view>
+				<text class="list-txt">我的私信</text>
+				<view class="list-right" v-if="privateNum > 0">
+					<text class="list-right-txt">{{privateNum >99? '99+':privateNum}}</text>
+				</view>
+			</view>
+			<view class="list" @tap='toMySpecial'>
+				<view class="icon-box">
+					<image class="icon1" src="~@/static/society/left/left2.png" mode="widthFix"></image>
+				</view>
+				<text class="list-txt">我的文章</text>
+				<view class="list-right" v-if="newsNum > 0">
+					<text class="list-right-txt">{{newsNum >99? '99+':newsNum}}</text>
+				</view>
+			</view>
+			<view @tap="toMo" class="list">
+				<view class="icon-box">
+					<image class="icon2" src="~@/static/society/left/left3.png" mode="widthFix"></image>
+				</view>
+				<text class="list-txt">我的海投圈</text>
+				<view class="list-right" v-if="momentsMessageCount > 0">
+					<text class="list-right-txt">{{momentsMessageCount >99? '99+':momentsMessageCount}}</text>
+				</view>
+			</view>
+			<view class="list" @tap='toVideo'>
+				<view class="icon-box">
+					<image class="icon3" src="~@/static/society/left/left4.png" mode="widthFix"></image>
+				</view>
+				<text class="list-txt">我的视频号</text>
+			</view>
+			<view class="title">
+				<text class="title-txt">我的关注</text>
+			</view>
+			<view class="list" @tap='toFocus'>
+				<view class="icon-box">
+					<image class="icon4" src="~@/static/society/left/left5.png" mode="widthFix"></image>
+				</view>
+				<text class="list-txt">关注的专题文章</text>
+			</view>
+			<view class="list" @tap='toFocusGuilld'>
+				<view class="icon-box">
+					<image class="icon5" src="~@/static/society/left/left6.png" mode="widthFix"></image>
+				</view>
+				<text class="list-txt">关注的公会</text>
+			</view>
+		</view>
+	</view>
+</template>
+
+<script>
+	const app = getApp().globalData;
+	export default {
+		watch:{
+			open(val){
+				const _this = this;
+				if(val){
+					this.$nextTick(()=>{
+						setTimeout(()=>{
+							_this.show = val;
+						},300)
+					});
+				}else{
+					
+				}
+				// if(val){
+				// 	this.$nextTick(()=>{
+				// 		setTimeout(()=>{
+				// 			_this.show = val;
+				// 		},300)
+				// 	})
+				// }
+			}
+		},
+		props:{
+			info:{
+				default:{
+					head_img:'',
+					nickname:"",
+					introduction:"",
+				}
+			},
+			open:{
+				default:false
+			},
+			newsNum:{
+				default:0
+			},
+			privateNum:{
+				default:0
+			},
+			momentsMessageCount:{
+				default:0
+			},
+			concernNum:{
+				default:0
+			},
+			fansNum:{
+				default:0
+			},
+			guildNum:{
+				default:0
+			}
+		},
+		data(){
+			return{
+				h:'',
+				top:'',
+				show:false,
+				// move:false
+			}
+		},
+		created() {
+			this.h = app.osHeight;
+			this.top = app.osStateH;
+		},
+		methods:{
+			toFocusGuilld(){
+				app.$next('society/focusGuilld/focusGuilld')
+			},
+			toMySpecial(){
+				app.$next('society/mySpecial/mySpecial')
+			},
+			toAttention(){
+				app.$next('society/attention/attention')
+			},
+			toFans(){
+				app.$next('society/fans/fans')
+			},
+			toFocus(){
+				app.$next('society/focus/focus')
+			},
+			isClick(ev){
+				// console.log('dasdsa')
+				ev.stopPropagation();
+			},
+			onOff(){
+				this.$emit('onClose');
+			},
+			toVideo(){
+				app.$tips('敬请期待')
+			},
+			onClose(){
+				this.$nextTick(()=>{
+					this.show = false;
+					setTimeout(()=>{
+						this.open = false;
+					},400)
+				})
+				// this.$emit('onClose')
+			},
+			toMyMessage(){
+				uni.navigateTo({
+					url:'/pages/society/privateMessageList/privateMessageList'
+				})
+			},
+			toMyGuild(){
+				uni.navigateTo({
+					url:'/pages/society/guildListAll/guildListAll'
+				})
+			},
+			toMo(){
+				uni.navigateTo({
+					url:'/pages/society/moments/moments'
+				})
+			}
+		}
+	}
+</script>
+
+<style scoped lang="scss">
+	.list-right{
+		@include size(50rpx,50rpx,#1890FF);
+		@include cen();
+		@include ab();
+		right: 30rpx;
+		border-radius: 50%;
+	}
+	.list-right-txt{
+		@include font(20rpx,white);
+	}
+	.list-txt{
+		@include font($e,#333);
+		@include bold();
+		margin-left: 25rpx;
+	}
+	.list{
+		@include size(580rpx,100rpx,none);
+		flex-direction: row;
+		align-items: center;
+		@include re();
+		padding-left: 30rpx;
+	}
+	.icon-box{
+		@include size(52rpx,100rpx,none);
+		@include cen();
+	}
+	.icon1{
+		@include size(40rpx,40rpx,none);
+	}
+	.icon2{
+		@include size(52rpx,36rpx,none);
+	}
+	.icon3{
+		@include size(45rpx,34rpx,none);
+	}
+	.icon4{
+		@include size(46rpx,44rpx,none);
+	}
+	.icon5{
+		@include size(44rpx,41rpx,none);
+	}
+	.title{
+		width: 520rpx;
+		height: 70rpx;
+		justify-content: center;
+		border-bottom-color: #AAAAAA;
+		border-bottom-width: 1rpx;
+		border-style: solid;
+		margin-top: 30rpx;
+	}
+	.title-txt{
+		@include font($m,#666666)
+	}
+	.info{
+		width: 580rpx;
+		height: 80rpx;
+		flex-direction: row;
+		align-items: center;
+		justify-content: space-between;
+		margin-top: 50rpx;
+	}
+	.info-list{
+		height: 80rpx;
+		flex: 1;
+		justify-content: center;
+		align-items: center;
+	}
+	.info-list-txt{
+		@include font(42rpx,#333);
+		@include bold()
+	}
+	.info-list-txt2{
+		@include font($m,#666);
+	}
+	.hand{
+		width: 580rpx;
+		height: 120rpx;
+		flex-direction: row;
+		align-items: center;
+		margin-top: 50rpx;
+	}
+	.hand-icon{
+		@include size(120rpx,120rpx,none);
+		margin-left: 30rpx;
+		border-radius: 50%;
+	}
+	.mid{
+		height: 120rpx;
+		flex: 1;
+		justify-content: center;
+		padding-left: 20rpx;
+	}
+	.mid-txt{
+		@include font($el,#333);
+		@include bold();
+	}
+	.mid-txt2{
+		@include font($m,#666);
+		margin-top: 10rpx;
+	}
+	.head{
+		width: 580rpx;
+		height: 88rpx;
+		justify-content: center;
+		padding-left: 30rpx;
+	}
+	.back{
+		@include size(40rpx,40rpx,none);
+	}
+	.left{
+		width: 580rpx;
+		flex: 1;
+		align-items: center;
+		background-color: white;
+		transition-duration: .4s;
+		transition-property:transform;
+		transform: translateX(-580rpx);
+	}
+	
+	.leftNav{
+		width: 750rpx;
+		background-color: rgba(0,0,0,0.7);
+		@include ab();
+		left: 0;
+		top: 0;
+		transition-duration: .4s;
+		transition-property:opacity;
+		opacity: 0;
+	}
+	.move{
+		transform: translateX(0rpx);
+	}
+	.show{
+		opacity: 1;
+	}
+</style>
